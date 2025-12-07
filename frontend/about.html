@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Tumor Recognition System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="logo">Brain Tumor Recognition System</div>
+    <nav>
+      <a href="{{ url_for('index') }}"> Home</a>
+      <a href="{{ url_for('about') }}">About</a>
+    </nav>
+  </header>
+
+  <!-- About Section -->
+  <section class="info-section">
+    <h2>About Brain Tumors</h2>
+
+    <p>
+      Brain tumors occur when abnormal cells grow uncontrollably in or around the brain. They may be benign (non-cancerous) or malignant
+      (cancerous). The impact of a tumor depends on its type, size, location, and how quickly it grows.
+    </p>
+
+    <p>The AI model in Brain Tumor Recognition System detects the following categories:</p>
+
+    <ul>
+      <li>
+        <h4 style="margin:6px 0; color:#9feffd;">Glioma</h4>
+        <p>Originates from glial cells that support neurons. Gliomas are often found deep in brain tissue and can be low-grade or high-grade.</p>
+      </li>
+
+      <li>
+        <h4 style="margin:6px 0; color:#9feffd;">Meningioma</h4>
+        <p>Arises from the meninges (protective layers around the brain). Most meningiomas are benign and slow-growing.</p>
+      </li>
+
+      <li>
+        <h4 style="margin:6px 0; color:#9feffd;">Pituitary Tumor</h4>
+        <p>Develops in the pituitary gland and can affect hormone balance.</p>
+      </li>
+
+      <li>
+        <h4 style="margin:6px 0; color:#9feffd;">No Tumor Detected</h4>
+        <p>MRI appears normal with no abnormal growths identified.</p>
+      </li>
+    </ul>
+
+    <p style="margin-top:12px;">
+      Note: Brain Tumor Recognition System is a decision-support tool designed to assist medical professionals. Always consult a qualified healthcare provider for diagnosis and treatment.
+    </p>
+  </section>
+</body>
+</html>

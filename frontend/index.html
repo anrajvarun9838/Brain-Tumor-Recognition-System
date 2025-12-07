@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Tumor Recognition System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="logo">Brain Tumor Recognition System</div>
+    <nav>
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('about') }}">About</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="homeSection">
+    <div class="hero-text">
+      <h1>AI-Powered Brain Tumor Detection</h1>
+      <p class="subtitle">
+        Empowering healthcare with cutting-edge deep learning models that analyze MRI scans for accurate and early tumor detection.
+      </p>
+
+      <form action="/" method="POST" enctype="multipart/form-data" id="uploadSection">
+        <label class="form-label">Upload MRI Scan</label>
+        <div class="file-upload">
+          <input type="file" name="file" accept="image/*" required>
+          <button type="submit">Analyze</button>
+        </div>
+      </form>
+
+      {% if result %}
+      <div class="result-card">
+        <h3>Analysis Result</h3>
+        <p><strong>{{ result }}</strong></p>
+        <p>Confidence: <b>{{ confidence }}</b></p>
+        <img src="{{ file_path }}" alt="Uploaded MRI Image">
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="hero-image">
+      <img src="{{ url_for('static', filename='images/Doc.png') }}" alt="Doctor">
+    </div>
+    
+  </section>
+  <section class="info-section">
+    <h2>About System</h2>
+    <p>
+      Brain Tumor Recognition System is an AI-powered diagnostic tool designed to support doctors in identifying brain tumors through MRI analysis.
+      Using deep learning models like CNN and VGG16, it delivers fast, reliable, and explainable predictions — helping clinicians make smarter decisions in less time.
+    </p>
+  </section>
+
+
+  <!-- AI Medical Assistant -->
+  <aside id="aiPanel" class="ai-card minimized" role="dialog" aria-label="AI Medical Assistant" aria-expanded="false">
+    <button id="aiMiniBtn" class="ai-mini-btn" aria-label="Open AI assistant">🤖</button>
+
+    <div class="ai-container" aria-hidden="true">
+      <div class="ai-header">
+        <div class="ai-title"><span id="aiEmoji">🤖</span> <span id="aiHeading">AI Medical Assistant</span></div>
+        <div class="ai-controls">
+          <button id="aiMinimizeBtn" class="ai-toggle-btn" title="Minimize assistant">—</button>
+        </div>
+      </div>
+
+      <div class="ai-note">This assistant provides explanations and educational insights based on your MRI analysis.</div>
+
+      <div id="ai-chat" class="ai-chat-box" role="log" aria-live="polite">
+        <div class="ai-assistant-msg">👋 Hello! I'm your AI medical assistant. Ask me anything about your MRI results.</div>
+        {% if result %}
+        <div class="ai-assistant-msg">Detected Result: <b>{{ result }}</b> (Confidence: {{ confidence }}%)</div>
+        {% endif %}
+      </div>
+
+      <div class="ai-input-row">
+        <input type="text" id="aiUserInput" placeholder="Type your question here..." aria-label="Ask the AI assistant"/>
+        <button id="aiSendBtn" type="button">Send</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- JS -->
+  <script>
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // AI assistant logic
+    const aiPanel = document.getElementById('aiPanel');
+    const aiMiniBtn = document.getElementById('aiMiniBtn');
+    const aiMinimizeBtn = document.getElementById('aiMinimizeBtn');
+    const aiContainer = aiPanel.querySelector('.ai-container');
+    const aiChatBox = document.getElementById('ai-chat');
+    const aiInput = document.getElementById('aiUserInput');
+    const aiSend = document.getElementById('aiSendBtn');
+
+    function expandPanel() {
+      aiPanel.classList.remove('minimized');
+      aiPanel.setAttribute('aria-expanded', 'true');
+      aiContainer.setAttribute('aria-hidden', 'false');
+    }
+
+    function minimizePanel() {
+      aiPanel.classList.add('minimized');
+      aiPanel.setAttribute('aria-expanded', 'false');
+      aiContainer.setAttribute('aria-hidden', 'true');
+    }
+
+    aiMiniBtn.addEventListener('click', expandPanel);
+    aiMinimizeBtn.addEventListener('click', minimizePanel);
+
+    async function typeWriterEffect(element, text, delay = 12) {
+      element.textContent = "";
+      for (let i = 0; i < text.length; i++) {
+        element.textContent += text.charAt(i);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    async function sendAIMessage() {
+      const text = aiInput.value.trim();
+      if (!text) return;
+
+      const userNode = document.createElement('div');
+      userNode.className = 'ai-user-msg';
+      userNode.textContent = '🧍 ' + text;
+      aiChatBox.appendChild(userNode);
+      aiChatBox.scrollTop = aiChatBox.scrollHeight;
+
+      const typingNode = document.createElement('div');
+      typingNode.className = 'ai-assistant-msg';
+      typingNode.textContent = '🤖 Thinking...';
+      aiChatBox.appendChild(typingNode);
+      aiChatBox.scrollTop = aiChatBox.scrollHeight;
+      aiInput.value = '';
+
+      try {
+        const resp = await fetch("/ai/info", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: text,
+            result: "{{ result or '' }}",
+            confidence: "{{ confidence or '' }}"
+          })
+        });
+        const data = await resp.json();
+        const reply = data.reply || "Sorry, I couldn't process that.";
+        await typeWriterEffect(typingNode, "🤖 " + reply);
+      } catch (err) {
+        typingNode.textContent = "🤖 Error: " + (err.message || "Request failed.");
+      }
+      aiChatBox.scrollTop = aiChatBox.scrollHeight;
+    }
+
+    aiSend.addEventListener('click', sendAIMessage);
+    aiInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendAIMessage();
+      }
+    });
+
+    async function autoExplain(result, confidence) {
+      const typingNode = document.createElement('div');
+      typingNode.className = 'ai-assistant-msg';
+      typingNode.textContent = '🤖 Analyzing MRI result...';
+      aiChatBox.appendChild(typingNode);
+      aiChatBox.scrollTop = aiChatBox.scrollHeight;
+
+      try {
+        const resp = await fetch("/ai/info", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: "",
+            result: result,
+            confidence: confidence
+          })
+        });
+
+        const data = await resp.json();
+        await typeWriterEffect(typingNode, "🤖 " + data.reply);
+
+      } catch (err) {
+        typingNode.textContent = "🤖 Auto-explanation failed.";
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const result = "{{ result or '' }}";
+      const confidence = "{{ confidence or '' }}";
+
+      minimizePanel();
+
+      if (result && confidence) {
+        setTimeout(() => {
+          expandPanel();
+          autoExplain(result, confidence); 
+        }, 500);
+      }
+    });
+</script>
+
+</body>
+</html>
